@@ -62,7 +62,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="bg-gradient-to-br from-blue-100 via-white to-purple-100 min-h-screen flex flex-col items-center justify-start px-4 py-16 overflow-y-scroll">
+    <main className="bg-gradient-to-br from-blue-100 via-white to-purple-100 min-h-screen flex flex-col items-center justify-start px-4 py-16 overflow-y-auto pb-32">
       <div className="w-full max-w-6xl flex flex-col items-center">
         <Transition
           show={isVisible}
@@ -162,8 +162,6 @@ export default function Home() {
             </Transition>
           ))}
         </div>
-
-        
       </div>
     </main>
   );
