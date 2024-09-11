@@ -1,12 +1,21 @@
 'use client'
 
-import { CircleArrowDown, RocketIcon } from 'lucide-react'
-import React, { useCallback } from 'react'
+import useUpload from '@/hooks/useUpload'
+import { CircleArrowDown,CheckCircleIcon, HammerIcon, SaveIcon, RocketIcon } from 'lucide-react'
+import React, { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { useRouter } from 'next/navigation'
 
 const FileUploader = () => {
 
   const {progress , status, fileId , handleUpload} =  useUpload();
+  const router = useRouter();
+
+  useEffect(() => {
+    if(fileId){
+      router.push(`dashboard/chat/${fileId}`)
+    }
+  }, [fileId, router])
 
   const onDrop = useCallback( async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
