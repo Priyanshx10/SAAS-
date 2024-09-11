@@ -5,12 +5,25 @@ import React, { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 const FileUploader = () => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log(acceptedFiles)
-    // Handle file upload logic here
+
+  const {progress , status, fileId , handleUpload} =  useUpload();
+
+  const onDrop = useCallback( async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0]
+    if(file){
+      await handleUpload(file) 
+    }else{
+      //toast.error("Please Upload  a File");
+    }
   }, [])
 
-  const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } = useDropzone({ onDrop })
+  const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } = useDropzone({ 
+    onDrop ,
+    maxFiles: 1,
+    accept: {
+      "application/pdf": [".pdf"]
+    }
+  })
 
   return (
     <div className='flex flex-col gap-4 items-center mx-auto max-w-7xl'>

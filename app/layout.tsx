@@ -17,7 +17,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "SaaS Application",
+  title: "Beansh AI",
   description: "Powerful SaaS solution for document management",
 };
 
