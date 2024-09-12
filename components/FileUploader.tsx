@@ -1,71 +1,114 @@
-'use client'
+"use client";
+import useUpload, { StatusText } from "@/hooks/useUpload";
+import {
+  CheckCircleIcon,
+  CircleArrowDown,
+  HammerIcon,
+  RocketIcon,
+  SaveIcon,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect } from "react";
+import { useDropzone } from "react-dropzone";
 
-import useUpload from '@/hooks/useUpload'
-import { CircleArrowDown,CheckCircleIcon, HammerIcon, SaveIcon, RocketIcon } from 'lucide-react'
-import React, { useCallback, useEffect } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { useRouter } from 'next/navigation'
-
-const FileUploader = () => {
-
-  const {progress , status, fileId , handleUpload} =  useUpload();
+function FileUploader() {
+  const { progress, status, fileId, handleUpload } = useUpload();
   const router = useRouter();
 
   useEffect(() => {
-    if(fileId){
-      router.push(`dashboard/chat/${fileId}`)
+    if (fileId) {
+      router.push(`/dashboard/files/${fileId}`);
     }
-  }, [fileId, router])
+  }, [fileId, router]);
 
-  const onDrop = useCallback( async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0]
-    if(file){
-      await handleUpload(file) 
-    }else{
-      //toast.error("Please Upload  a File");
-    }
-  }, [])
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      console.log(acceptedFiles);
+      const file = acceptedFiles[0];
+      if (file) {
+        await handleUpload(file);
+      }
+    },
+    [handleUpload]
+  );
 
-  const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } = useDropzone({ 
-    onDrop ,
-    maxFiles: 1,
-    accept: {
-      "application/pdf": [".pdf"]
-    }
-  })
+  const statusIcons: {
+    [key in StatusText]: JSX.Element;
+  } = {
+    [StatusText.UPLOADING]: (
+      <RocketIcon className="h-20 w-20 text-indigo-600" />
+    ),
+    [StatusText.UPLOADED]: (
+      <CheckCircleIcon className="h-20 w-20 text-indigo-600" />
+    ),
+    [StatusText.SAVING]: <SaveIcon className="h-20 w-20 text-indigo-600" />,
+    [StatusText.GENERATING]: (
+      <HammerIcon className="h-20 w-20 text-indigo-600 animate-bounce" />
+    ),
+  };
+
+  const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } =
+    useDropzone({
+      onDrop,
+      maxFiles: 1,
+      accept: {
+        "application/pdf": [".pdf"],
+      },
+    });
+
+  const uploadInProgress = progress != null && progress >= 0 && progress <= 100;
 
   return (
-    <div className='flex flex-col gap-4 items-center mx-auto max-w-7xl'>
-      <div 
-        {...getRootProps()} 
-        className={`
-          mt-24 h-96 text-center cursor-pointer 
-          ${isDragActive ? 'bg-indigo-50' : 'bg-white'}
-          text-indigo-600 mx-auto w-full max-w-2xl 
-          border-2 border-dashed rounded-lg 
-          transition-colors duration-300 ease-in-out
-          flex items-center justify-center 
-          ${isFocused || isDragAccept ? 'border-indigo-400 shadow-lg' : 'border-indigo-300'}
-        `}
-      >
-        <input {...getInputProps()} />
-        <div className='flex flex-col items-center justify-center p-8'>
-          {isDragActive ? (
-            <>
-              <RocketIcon className='w-24 h-24 text-indigo-500 animate-pulse mb-4' />
-              <p className='text-lg font-semibold'>Drop the files here ...</p>
-            </>
-          ) : (
-            <>
-              <CircleArrowDown className='w-24 h-24 text-indigo-500 animate-bounce mb-4' />
-              <p className='text-lg font-semibold mb-2'>Drag &apos;n&apos; drop some files here</p>
-              <p className='text-sm text-gray-500'>or click to select files</p>
-            </>
-          )}
+    <div className="flex flex-col gap-4 items-center max-w-7xl mx-auto ">
+      {/* loading */}
+      {uploadInProgress && (
+        <div className="mt-32 flex flex-col justify-center items-center gap-5">
+          <div
+            className={`radial-progress bg-indigo-300 text-white border-indigo-600 border-4 ${
+              progress === 100 ? "hidden" : ""
+            }`}
+            role="progressbar"
+            style={{
+              "--value": progress,
+              "--size": "12rem",
+              "--thickness": "1.3rem",
+            } as React.CSSProperties}
+          >
+            {progress} %{" "}
+          </div>
+
+          {status && statusIcons[status]}
+
+          <p className="text-indigo-600 animate-pulse">
+            {status ? String(status) : ""}
+          </p>
         </div>
-      </div>
+      )}
+      {!uploadInProgress && (
+        <div
+          {...getRootProps()}
+          className={`p-10 border-2 border-dashed mt-10 w-[90%] border-indigo-600 text-indigo-600 rounded-lg h-96 flex items-center justify-center ${
+            isFocused || isDragAccept ? "bg-indigo-300" : "bg-indigo-100"
+          }`}
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center justify-center">
+            {isDragActive ? (
+              <>
+                <RocketIcon className="h-20 w-20 animate-ping" />
+                <p>Drop the files here ...</p>
+              </>
+            ) : (
+              <>
+                <CircleArrowDown className="h-20 w-20 animate-bounce" />
+                <p>Drag n drop some files here, or click to select files</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-export default FileUploader
+export default FileUploader;
