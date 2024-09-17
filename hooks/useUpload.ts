@@ -11,16 +11,18 @@ import { setDoc, doc } from "firebase/firestore";
 export enum StatusText {
   UPLOADING = 'UPLOADING FILES',
   UPLOADED = 'FILE UPLOADED SUCCESSFULLY',
-  SAVING = 'SAVING FILE TO DATABASE',
+  SAVING = 'SAVING FILE TO DATABASE...',
   GENERATING = 'GENERATING AI EMBEDDINGS, THIS WILL ONLY TAKE A FEW SECONDS...',
 }
+
+  export type Status = StatusText[keyof StatusText];
 
 function useUpload() {
   const [progress, setProgress] = useState<number | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
-  const [status, setStatus] = useState<StatusText | null>(null);
+  const [status, setStatus] = useState<Status | null>(null);
   const { user } = useUser();
-  const router = useRouter();
+  const router = useRouter() ;
 
   const handleUpload = async (file: File) => {
     if(!file || !user) return;

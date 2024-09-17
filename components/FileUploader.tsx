@@ -1,4 +1,5 @@
 "use client";
+
 import useUpload, { StatusText } from "@/hooks/useUpload";
 import {
   CheckCircleIcon,
@@ -13,7 +14,7 @@ import { useDropzone } from "react-dropzone";
 
 function FileUploader() {
   const { progress, status, fileId, handleUpload } = useUpload();
-  const router = useRouter();
+  const router = useRouter(); 
 
   useEffect(() => {
     if (fileId) {
@@ -24,9 +25,12 @@ function FileUploader() {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       console.log(acceptedFiles);
+      
       const file = acceptedFiles[0];
       if (file) {
         await handleUpload(file);
+      }else{
+        //toast....
       }
     },
     [handleUpload]
