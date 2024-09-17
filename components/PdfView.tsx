@@ -1,4 +1,5 @@
 "use client";
+
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -9,10 +10,10 @@ import { NamespaceSummaryFromJSON } from "@pinecone-database/pinecone/dist/pinec
 
 //we need to configure CORS
 //gsutil cors set set.json gs://<app-name>.appspot.com
-//gsutil cors set set.json gs://chat-with-pdf--challenge.appspot.com
+//gsutil cors set set.json gs://saas-2k24.appspot.com
 //go here >>> https://console.cloud.google.com/
 //create new file in editor calls cors.json
-//run >>> // gsutil cors set cors.json gs://chat-with-pdf--challenge.appspot.com
+//run >>> // gsutil cors set cors.json gs://saas-2k24.appspot.com
 //https://firebase.google.com/docs/storage/web/download-files#cors_configuration
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;

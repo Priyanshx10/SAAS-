@@ -1,70 +1,79 @@
-'use client'
+"use client";
 
-import { useState } from "react";
+import { generateEmbeddings } from "../actions/generateEmbeddings";
+import { db, storage } from "@/firebase";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from 'uuid';
-import { storage, db } from "@/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { setDoc, doc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export enum StatusText {
-  UPLOADING = 'UPLOADING FILES',
-  UPLOADED = 'FILE UPLOADED SUCCESSFULLY',
-  SAVING = 'SAVING FILE TO DATABASE...',
-  GENERATING = 'GENERATING AI EMBEDDINGS, THIS WILL ONLY TAKE A FEW SECONDS...',
+  UPLOADING = "Uploading file...",
+  UPLOADED = "File uploaded successfully",
+  SAVING = "Saving file to database...",
+  GENERATING = "Generating AI Embeddings, This will only take a few seconds...",
 }
 
-  export type Status = StatusText[keyof StatusText];
+export type Status = StatusText[keyof StatusText];
 
 function useUpload() {
   const [progress, setProgress] = useState<number | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
   const [status, setStatus] = useState<Status | null>(null);
   const { user } = useUser();
-  const router = useRouter() ;
+  const router = useRouter;
 
   const handleUpload = async (file: File) => {
-    if(!file || !user) return;
+    if (!user || !file) return;
 
-    //FREE PRO LIMITATIONS
-    
     const fileIdToUploadTo = uuidv4();
 
-    const storageRef = ref(storage, 
-      `users/${user.id}/files/${fileIdToUploadTo}`);
+    const storageRef = ref(
+      storage,
+      `users/${user.id}/files/${fileIdToUploadTo}`
+    );
 
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on('state_changed', (snapshot) => {
-      const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-      setProgress(percent);
-      setStatus(StatusText.UPLOADING);
-    }, (error) => {
-      console.error("Error uploading file", error);
-    }, async () => {
-      setStatus(StatusText.UPLOADED);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const percent = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
 
-      const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+        setStatus(StatusText.UPLOADING);
+        setProgress(percent);
+      },
+      (error) => {
+        console.log("Error uploading file", error);
+      },
+      async () => {
+        setStatus(StatusText.UPLOADED);
 
-      setStatus(StatusText.SAVING);
-      await setDoc(doc(db, 'users', user.id, 'files', fileIdToUploadTo), {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        downloadUrl: downloadUrl,
-        ref: uploadTask.snapshot.ref,
-        createdAt: new Date(),
-      });
+        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
 
-      setStatus(StatusText.UPLOADED);
-      //Generating AI embeddings
+        setStatus(StatusText.SAVING);
+        await setDoc(doc(db, "users", user.id, "files", fileIdToUploadTo), {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          downloadUrl: downloadUrl,
+          ref: uploadTask.snapshot.ref.fullPath,
+          createdAt: new Date(),
+        });
 
-      setFileId(fileIdToUploadTo);
-    });
-  }
+        setStatus(StatusText.GENERATING);
+        //generate AI Embeddings
+        await generateEmbeddings(fileIdToUploadTo);
 
-  return { progress, fileId, status, handleUpload };
+        setFileId(fileIdToUploadTo);
+      }
+    );
+  };
+
+  return { progress, status, fileId, handleUpload };
 }
-
 export default useUpload;

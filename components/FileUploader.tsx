@@ -96,6 +96,7 @@ function FileUploader() {
           }`}
         >
           <input {...getInputProps()} />
+          
           <div className="flex flex-col items-center justify-center">
             {isDragActive ? (
               <>
